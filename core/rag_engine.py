@@ -1,22 +1,9 @@
-import os
-
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_mistralai import ChatMistralAI
 
+from core.llm import MAX_INPUT_CHARS, get_llm
 from core.vector_store import build_vector_store, get_retriever
-
-
-def get_llm():
-    api_key = os.getenv("MISTRAL_API_KEY")
-    if not api_key:
-        raise RuntimeError("MISTRAL_API_KEY is not set in environment / .env")
-    return ChatMistralAI(
-        model="mistral-small-latest",
-        mistral_api_key=api_key,
-        temperature=0.3,
-    )
     
 def format_docs(docs):
     return "\n\n".join([doc.page_content for doc in docs])
@@ -65,6 +52,7 @@ Context from meeting transcript:
 def ask_question(rag_chain,question:str)->str:
     if not question.strip():
         raise ValueError("Enter a question about the recording.")
+    question = question[:MAX_INPUT_CHARS]
     print(f"Question:{question}")
     answer=rag_chain.invoke(question)
     print(f"answer:{answer}")

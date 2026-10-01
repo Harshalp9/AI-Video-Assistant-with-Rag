@@ -33,7 +33,7 @@ st.markdown(
 :root {
     --ink: #172033;
     --muted: #5d6b82;
-    --paper: #f4f6fa;
+    --paper: #fff0f5;
     --card: #ffffff;
     --line: #dde3ee;
     --accent: #2f5bea;
@@ -176,8 +176,8 @@ def analyze(source: str, language: str) -> dict:
     language = language.strip().lower()
     if language not in {"english", "hinglish"}:
         raise ValueError("language must be 'english' or 'hinglish'")
-    if not os.getenv("MISTRAL_API_KEY"):
-        raise RuntimeError("MISTRAL_API_KEY is not set in environment / .env")
+    if not os.getenv("GEMINI_API_KEY"):
+        raise RuntimeError("GEMINI_API_KEY is not set in environment / .env")
     if language == "hinglish" and not os.getenv("SARVAM_API_KEY"):
         raise RuntimeError("SARVAM_API_KEY is required when language is 'hinglish'.")
     with st.status("Working on your recording…", expanded=True) as status:

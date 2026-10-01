@@ -1,17 +1,10 @@
-import os
-
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_mistralai import ChatMistralAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-
-def get_llm():
-    api_key = os.getenv("MISTRAL_API_KEY")
-    if not api_key:
-        raise RuntimeError("MISTRAL_API_KEY is not set in environment / .env")
-    return ChatMistralAI(model="mistral-small-latest", mistral_api_key=api_key, temperature=0.3)
+from core.llm import MAX_INPUT_CHARS, get_llm
+from core.llm_limits import group_within_limit
 
 
 def split_transcript(transcript: str)->list:
@@ -46,6 +39,14 @@ def summarize(transcript: str) -> str:
         for chunk in chunks
     ]
 
+    while len("\n\n".join(chunk_summaries)) > MAX_INPUT_CHARS:
+        groups = group_within_limit(chunk_summaries)
+        if len(groups) >= len(chunk_summaries):
+            return "\n\n".join(chunk_summaries)
+        chunk_summaries = [
+            map_chain.invoke({"text": group})
+            for group in groups
+        ]
     combined = "\n\n".join(chunk_summaries)
 
     combined_prompt = ChatPromptTemplate.from_messages(

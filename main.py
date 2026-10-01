@@ -18,8 +18,8 @@ def run_pipeline(source :str, language :str = "english") -> dict:
     language = language.strip().lower()
     if language not in {"english", "hinglish"}:
         raise ValueError("language must be 'english' or 'hinglish'")
-    if not os.getenv("MISTRAL_API_KEY"):
-        raise RuntimeError("MISTRAL_API_KEY is not set in environment / .env")
+    if not os.getenv("GEMINI_API_KEY"):
+        raise RuntimeError("GEMINI_API_KEY is not set in environment / .env")
     if language == "hinglish" and not os.getenv("SARVAM_API_KEY"):
         raise RuntimeError("SARVAM_API_KEY is required when language is 'hinglish'.")
     print("starting AI Video Assistant")

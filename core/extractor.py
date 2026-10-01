@@ -1,19 +1,11 @@
 #Actionableitems , decision , questions 
 
-import os
-
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_mistralai import ChatMistralAI
 
-
-def get_llm():
-    api_key = os.getenv("MISTRAL_API_KEY")
-    if not api_key:
-        raise RuntimeError("MISTRAL_API_KEY is not set in environment / .env")
-    return ChatMistralAI(model="mistral-small-latest", mistral_api_key=api_key, temperature=0.2)
-
+from core.llm import get_llm
+from core.llm_limits import group_within_limit, split_for_model
 
 
 def build_chain(system_prompt : str):
@@ -25,38 +17,58 @@ def build_chain(system_prompt : str):
     ]) | llm |StrOutputParser()
     )
 
+def extract_in_chunks(transcript: str, instruction: str, empty_result: str) -> str:
+    extract_chain = build_chain(instruction)
+    results = [extract_chain.invoke(chunk) for chunk in split_for_model(transcript)]
+    if not results:
+        return empty_result
+
+    merge_chain = build_chain(
+        "Combine and deduplicate these partial results. Preserve every distinct "
+        f"item and use the requested format. {instruction}"
+    )
+    while len(results) > 1:
+        groups = group_within_limit(results)
+        if len(groups) >= len(results):
+            return "\n\n".join(results).strip()
+        results = [merge_chain.invoke(group) for group in groups]
+    return results[0].strip() or empty_result
+
+
 def extract_action_items(transcript:str)->str:
     if not transcript.strip():
         raise ValueError("Cannot extract action items from an empty transcript.")
-    chain = build_chain(
+    return extract_in_chunks(
+        transcript,
          "You are an expert meeting analyst. From the meeting transcript, "
         "extract all action items. For each provide:\n"
         "- Task description\n"
         "- Owner (who is responsible)\n"
         "- Deadline (if mentioned, else write 'Not specified')\n\n"
-        "Format as a numbered list. If none found say 'No action items found.'"
+        "Format as a numbered list. If none found say 'No action items found.'",
+        "No action items found.",
     )
-
-    return chain.invoke(transcript)
 
 
 def extract_key_decisions(transcript: str) -> str:
     if not transcript.strip():
         raise ValueError("Cannot extract decisions from an empty transcript.")
-    chain = build_chain(
+    return extract_in_chunks(
+        transcript,
         "You are an expert meeting analyst. From the meeting transcript, "
         "extract all key decisions made. Format as a numbered list. "
-        "If none found say 'No key decisions found.'"
+        "If none found say 'No key decisions found.'",
+        "No key decisions found.",
     )
-    return chain.invoke(transcript)
 
 
 def extract_questions(transcript: str) -> str:
     if not transcript.strip():
         raise ValueError("Cannot extract questions from an empty transcript.")
-    chain = build_chain(
+    return extract_in_chunks(
+        transcript,
         "From the meeting transcript, extract all unresolved questions "
         "or topics needing follow-up. Format as a numbered list. "
-        "If none found say 'No open questions found.'"
+        "If none found say 'No open questions found.'",
+        "No open questions found.",
     )
-    return chain.invoke(transcript)
