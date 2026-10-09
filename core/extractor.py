@@ -8,8 +8,8 @@ from core.llm import get_llm
 from core.llm_limits import group_within_limit, split_for_model
 
 
-def build_chain(system_prompt : str):
-    llm = get_llm()
+def build_chain(system_prompt : str, api_key: str | None = None):
+    llm = get_llm(api_key=api_key)
     return (
         RunnablePassthrough() | RunnableLambda(lambda x : {"text" : x}) |ChatPromptTemplate.from_messages([
         ("system", system_prompt),
@@ -17,15 +17,21 @@ def build_chain(system_prompt : str):
     ]) | llm |StrOutputParser()
     )
 
-def extract_in_chunks(transcript: str, instruction: str, empty_result: str) -> str:
-    extract_chain = build_chain(instruction)
+def extract_in_chunks(
+    transcript: str,
+    instruction: str,
+    empty_result: str,
+    api_key: str | None = None,
+) -> str:
+    extract_chain = build_chain(instruction, api_key=api_key)
     results = [extract_chain.invoke(chunk) for chunk in split_for_model(transcript)]
     if not results:
         return empty_result
 
     merge_chain = build_chain(
         "Combine and deduplicate these partial results. Preserve every distinct "
-        f"item and use the requested format. {instruction}"
+        f"item and use the requested format. {instruction}",
+        api_key=api_key,
     )
     while len(results) > 1:
         groups = group_within_limit(results)
@@ -35,7 +41,7 @@ def extract_in_chunks(transcript: str, instruction: str, empty_result: str) -> s
     return results[0].strip() or empty_result
 
 
-def extract_action_items(transcript:str)->str:
+def extract_action_items(transcript:str, api_key: str | None = None)->str:
     if not transcript.strip():
         raise ValueError("Cannot extract action items from an empty transcript.")
     return extract_in_chunks(
@@ -47,10 +53,11 @@ def extract_action_items(transcript:str)->str:
         "- Deadline (if mentioned, else write 'Not specified')\n\n"
         "Format as a numbered list. If none found say 'No action items found.'",
         "No action items found.",
+        api_key=api_key,
     )
 
 
-def extract_key_decisions(transcript: str) -> str:
+def extract_key_decisions(transcript: str, api_key: str | None = None) -> str:
     if not transcript.strip():
         raise ValueError("Cannot extract decisions from an empty transcript.")
     return extract_in_chunks(
@@ -59,10 +66,11 @@ def extract_key_decisions(transcript: str) -> str:
         "extract all key decisions made. Format as a numbered list. "
         "If none found say 'No key decisions found.'",
         "No key decisions found.",
+        api_key=api_key,
     )
 
 
-def extract_questions(transcript: str) -> str:
+def extract_questions(transcript: str, api_key: str | None = None) -> str:
     if not transcript.strip():
         raise ValueError("Cannot extract questions from an empty transcript.")
     return extract_in_chunks(
@@ -71,4 +79,5 @@ def extract_questions(transcript: str) -> str:
         "or topics needing follow-up. Format as a numbered list. "
         "If none found say 'No open questions found.'",
         "No open questions found.",
+        api_key=api_key,
     )

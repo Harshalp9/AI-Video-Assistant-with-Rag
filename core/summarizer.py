@@ -15,10 +15,10 @@ def split_transcript(transcript: str)->list:
     
     return splitter.split_text(transcript)
 
-def summarize(transcript: str) -> str:
+def summarize(transcript: str, api_key: str | None = None) -> str:
     if not transcript.strip():
         raise ValueError("Cannot summarize an empty transcript.")
-    llm = get_llm()
+    llm = get_llm(api_key=api_key)
 
     map_prompt = ChatPromptTemplate.from_messages(
         [
@@ -73,10 +73,10 @@ def summarize(transcript: str) -> str:
 
     return combined_chain.invoke(combined)
 
-def generate_title(transcript: str) -> str:
+def generate_title(transcript: str, api_key: str | None = None) -> str:
     if not transcript.strip():
         raise ValueError("Cannot generate a title for an empty transcript.")
-    llm = get_llm()
+    llm = get_llm(api_key=api_key)
 
     title_chain = (
         RunnablePassthrough()

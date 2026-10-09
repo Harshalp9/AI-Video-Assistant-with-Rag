@@ -172,21 +172,32 @@ def build_report(r: dict) -> str:
     )
 
 
-def analyze(source: str, language: str) -> dict:
+def analyze(
+    source: str,
+    language: str,
+    gemini_api_key: str | None = None,
+    sarvam_api_key: str | None = None,
+) -> dict:
     language = language.strip().lower()
     if language not in {"english", "hinglish"}:
         raise ValueError("language must be 'english' or 'hinglish'")
-    if not os.getenv("GEMINI_API_KEY"):
-        raise RuntimeError("GEMINI_API_KEY is not set in environment / .env")
-    if language == "hinglish" and not os.getenv("SARVAM_API_KEY"):
-        raise RuntimeError("SARVAM_API_KEY is required when language is 'hinglish'.")
+    gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY")
+    sarvam_api_key = sarvam_api_key or os.getenv("SARVAM_API_KEY")
+    if not gemini_api_key:
+        raise RuntimeError("Enter a Gemini API key in the sidebar to analyze a recording.")
+    if language == "hinglish" and not sarvam_api_key:
+        raise RuntimeError("Enter a Sarvam API key to transcribe Hinglish recordings.")
     with st.status("Working on your recording…", expanded=True) as status:
         st.write("Preparing audio")
         chunks = process_input(source)
 
         st.write("Transcribing")
         try:
-            transcript = transcribe_all(chunks, language)
+            transcript = transcribe_all(
+                chunks,
+                language,
+                sarvam_api_key=sarvam_api_key,
+            )
         finally:
             cleanup_audio(chunks, source)
         if not transcript.strip():
@@ -197,16 +208,16 @@ def analyze(source: str, language: str) -> dict:
             )
 
         st.write("Writing title and summary")
-        title = generate_title(transcript)
-        summary = summarize(transcript)
+        title = generate_title(transcript, api_key=gemini_api_key)
+        summary = summarize(transcript, api_key=gemini_api_key)
 
         st.write("Finding action items, decisions and questions")
-        action_items = extract_action_items(transcript)
-        decisions = extract_key_decisions(transcript)
-        questions = extract_questions(transcript)
+        action_items = extract_action_items(transcript, api_key=gemini_api_key)
+        decisions = extract_key_decisions(transcript, api_key=gemini_api_key)
+        questions = extract_questions(transcript, api_key=gemini_api_key)
 
         st.write("Indexing the transcript for chat")
-        rag_chain = build_rag_chain(transcript)
+        rag_chain = build_rag_chain(transcript, api_key=gemini_api_key)
 
         status.update(label="Done", state="complete", expanded=False)
 
@@ -244,6 +255,19 @@ with st.sidebar:
         help="English uses local Whisper. Hinglish uses Sarvam to transcribe Hindi/Indian-language speech into English and requires SARVAM_API_KEY.",
     )
 
+    gemini_api_key = st.text_input(
+        "Gemini API key",
+        type="password",
+        help="Used for summaries, extracted notes, and transcript chat.",
+    )
+    sarvam_api_key = ""
+    if language == "Hinglish":
+        sarvam_api_key = st.text_input(
+            "Sarvam API key",
+            type="password",
+            help="Used to transcribe and translate Hinglish audio.",
+        )
+
     run = st.button("Analyze recording", use_container_width=True, type="primary")
 
     if st.session_state.result:
@@ -275,7 +299,12 @@ if run:
 
     if source:
         try:
-            st.session_state.result = analyze(source, language.lower())
+            st.session_state.result = analyze(
+                source,
+                language.lower(),
+                gemini_api_key=gemini_api_key,
+                sarvam_api_key=sarvam_api_key,
+            )
             st.session_state.messages = []
         except Exception as exc:  # surface any pipeline error in the UI
             st.error(f"Couldn't process this recording: {exc}")

@@ -8,7 +8,7 @@ from core.vector_store import build_vector_store, get_retriever
 def format_docs(docs):
     return "\n\n".join([doc.page_content for doc in docs])
 
-def build_rag_chain(transcript:str):
+def build_rag_chain(transcript: str, api_key: str | None = None):
     if not transcript.strip():
         raise ValueError("Cannot build a chat index from an empty transcript.")
     
@@ -16,7 +16,7 @@ def build_rag_chain(transcript:str):
     
     retriever=get_retriever(vector_store, k=4)
     
-    llm=get_llm()
+    llm=get_llm(api_key=api_key)
     
     prompt=ChatPromptTemplate.from_messages(
         

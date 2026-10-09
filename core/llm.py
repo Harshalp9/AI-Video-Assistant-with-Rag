@@ -6,8 +6,11 @@ MAX_INPUT_CHARS = 6000
 MAX_OUTPUT_TOKENS = 1024
 
 
-def get_llm(temperature: float = 1.0) -> ChatGoogleGenerativeAI:
-    api_key = os.getenv("GEMINI_API_KEY")
+def get_llm(
+    temperature: float = 1.0,
+    api_key: str | None = None,
+) -> ChatGoogleGenerativeAI:
+    api_key = api_key or os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY is not set in environment / .env")
     return ChatGoogleGenerativeAI(
