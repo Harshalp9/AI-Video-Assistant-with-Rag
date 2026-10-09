@@ -30,6 +30,13 @@ def download_youtube_audio(url :str) ->str:
             filename = os.path.splitext(ydl.prepare_filename(info))[0] + ".wav"
     except yt_dlp.utils.DownloadError as exc:
         message = str(exc)
+        if "403" in message or "forbidden" in message.lower():
+            raise RuntimeError(
+                "YouTube denied the download (HTTP 403). Redeploy the app to "
+                "install the updated yt-dlp version. If it still fails, the "
+                "hosting provider may block YouTube downloads; download the "
+                "recording yourself and use Upload a file instead."
+            ) from exc
         if "ffmpeg" in message.lower() or "ffprobe" in message.lower():
             raise RuntimeError(
                 "FFmpeg and ffprobe are required to download/convert audio. "

@@ -109,6 +109,7 @@ Generated Chroma data is stored in `vector_db/`. YouTube downloads and temporary
 
 - **`requirements.txt` or `main.py` not found:** change to the project directory before running project commands. `uv` and Python resolve relative file paths from the current directory.
 - **FFmpeg/ffprobe errors:** install FFmpeg and confirm `ffmpeg` and `ffprobe` are available on `PATH`.
+- **YouTube HTTP 403 after deployment:** redeploy to install the updated `yt-dlp`; some hosting providers also block YouTube downloads from their server IPs. Download the recording and use **Upload a file** if the host continues returning 403.
 - **Missing Gemini key:** add `GEMINI_API_KEY` to the project-root `.env` file.
 - **Hinglish key error:** add `SARVAM_API_KEY` to `.env` or select English transcription.
 - **Slow first run:** Whisper and sentence-transformer models may need to be downloaded before local transcription and indexing can begin.
