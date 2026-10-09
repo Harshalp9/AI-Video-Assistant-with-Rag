@@ -21,7 +21,7 @@ st.set_page_config(
     page_title="Meeting Assistant",
     page_icon="🎙️",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ---------------------------------------------------------------- styling
@@ -31,79 +31,207 @@ st.markdown(
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500&display=swap');
 
 :root {
-    --ink: #172033;
-    --muted: #5d6b82;
-    --paper: #fff0f5;
-    --card: #ffffff;
-    --line: #dde3ee;
-    --accent: #2f5bea;
-    --accent-soft: #e8eefe;
+    --ink: #173b35;
+    --muted: #66766f;
+    --paper: #f2f3eb;
+    --card: #fffefa;
+    --line: #d8ded2;
+    --accent: #d65e45;
+    --accent-soft: #f8e7df;
+    --lime: #d1e76a;
+    --forest: #173b35;
 }
 
 html, body, [class*="css"], .stMarkdown, .stTextInput input, .stChatInput textarea {
     font-family: 'IBM Plex Sans', sans-serif;
     color: var(--ink);
 }
-.stApp { background: var(--paper); }
-.block-container { padding-top: 2.2rem; max-width: 1100px; }
+.stApp {
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(23, 59, 53, .025) 40px
+    );
+}
+.block-container { padding-top: 1.5rem; max-width: 1180px; }
 
 h1, h2, h3, .hero-title {
     font-family: 'Bricolage Grotesque', sans-serif !important;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     color: var(--ink);
 }
 
 /* sidebar */
 section[data-testid="stSidebar"] {
-    background: var(--ink);
+    background: var(--forest);
+    border-right: 1px solid rgba(255, 255, 255, .12);
 }
-section[data-testid="stSidebar"] * { color: #e7ecf7 !important; }
+section[data-testid="stSidebar"] * { color: #e8eee4 !important; }
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3 { color: #ffffff !important; }
+section[data-testid="stSidebar"] h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+    color: #b6c8b8 !important;
+}
+section[data-testid="stSidebar"] hr {
+    border-color: rgba(255, 255, 255, .18);
+}
 section[data-testid="stSidebar"] input,
 section[data-testid="stSidebar"] [data-baseweb="select"] > div {
-    background: #24304a !important;
-    border-color: #35446a !important;
+    background: #224a41 !important;
+    border-color: #43675a !important;
+    border-radius: 6px !important;
 }
 section[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] {
-    background: #24304a;
-    border: 1px dashed #4a5b85;
+    background: #224a41;
+    border: 1px dashed #72917b;
+    border-radius: 6px;
 }
 section[data-testid="stSidebar"] button {
-    background: var(--accent) !important;
+    background: var(--lime) !important;
     border: none !important;
-    color: #fff !important;
+    border-radius: 6px !important;
+    color: var(--forest) !important;
+    font-weight: 700;
+    transition: transform .18s ease, background-color .18s ease;
+}
+section[data-testid="stSidebar"] button:hover {
+    background: #e0f18b !important;
+    transform: translateY(-1px);
+}
+section[data-testid="stSidebar"] label p {
+    font-size: .88rem;
     font-weight: 500;
 }
-section[data-testid="stSidebar"] button:hover { background: #4a71f0 !important; }
 
-/* hero */
-.hero {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-left: 6px solid var(--accent);
-    border-radius: 10px;
-    padding: 1.6rem 1.8rem;
-    margin-bottom: 1.2rem;
+/* workspace header */
+.masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: .25rem 0 1.1rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
 }
-.hero-title { font-size: 2rem; font-weight: 700; margin: 0 0 .3rem 0; line-height: 1.15; }
-.hero-sub { color: var(--muted); margin: 0; }
-
-/* empty state */
-.empty {
-    text-align: center;
-    padding: 4rem 1rem;
+.brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    color: var(--ink);
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 1.12rem;
+    font-weight: 700;
+}
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    background: var(--forest);
+    color: var(--lime);
+    font-size: 1.05rem;
+}
+.workspace-tag, .eyebrow {
     color: var(--muted);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
 }
-.empty h2 { margin-bottom: .4rem; }
+
+/* empty state and completed meeting */
+.empty, .hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--forest);
+    border-radius: 8px;
+    color: #fffefa;
+}
+.empty {
+    min-height: 390px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3.2rem clamp(1.5rem, 6vw, 5rem);
+    text-align: left;
+}
+.empty::after {
+    content: "";
+    position: absolute;
+    right: -3rem;
+    bottom: -8rem;
+    width: 25rem;
+    height: 25rem;
+    border: 1px solid rgba(209, 231, 106, .22);
+    border-radius: 50%;
+    box-shadow: 0 0 0 30px rgba(209, 231, 106, .035),
+                0 0 0 70px rgba(209, 231, 106, .025);
+    pointer-events: none;
+}
+.empty .eyebrow, .hero .eyebrow { color: var(--lime); }
+.empty h1 {
+    max-width: 650px;
+    margin: .8rem 0 .75rem;
+    color: #fffefa;
+    font-size: 4rem;
+    line-height: 1;
+}
+.empty p {
+    max-width: 470px;
+    color: #c5d3c4;
+    font-size: 1.05rem;
+    line-height: 1.65;
+}
+.waveform {
+    position: absolute;
+    right: 7%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 88px;
+    transform: translateY(-50%);
+    opacity: .82;
+}
+.waveform span {
+    width: 4px;
+    height: var(--bar-height);
+    border-radius: 2px;
+    background: var(--lime);
+    animation: breathe 2.8s ease-in-out infinite alternate;
+    animation-delay: var(--delay);
+}
+@keyframes breathe {
+    from { transform: scaleY(.72); opacity: .55; }
+    to { transform: scaleY(1); opacity: 1; }
+}
+.hero {
+    padding: 1.65rem 1.8rem;
+    margin-bottom: 1rem;
+    background-image: linear-gradient(110deg, #173b35 0%, #245247 100%);
+}
+.hero-title {
+    max-width: 850px;
+    margin: .45rem 0 .4rem;
+    color: #fffefa;
+    font-size: 2.15rem;
+    font-weight: 700;
+    line-height: 1.13;
+    overflow-wrap: anywhere;
+}
+.hero-sub { color: #c5d3c4; margin: 0; }
 
 /* stats */
 div[data-testid="stMetric"] {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: .9rem 1.1rem;
+    border-radius: 6px;
+    padding: .85rem 1rem;
 }
 div[data-testid="stMetricLabel"] { color: var(--muted); }
 div[data-testid="stMetricValue"] {
@@ -112,7 +240,7 @@ div[data-testid="stMetricValue"] {
 }
 
 /* tabs */
-button[data-baseweb="tab"] { font-weight: 500; font-size: 1rem; }
+button[data-baseweb="tab"] { font-weight: 600; font-size: .95rem; }
 button[data-baseweb="tab"][aria-selected="true"] { color: var(--accent); }
 div[data-baseweb="tab-highlight"] { background-color: var(--accent) !important; }
 
@@ -120,7 +248,7 @@ div[data-baseweb="tab-highlight"] { background-color: var(--accent) !important; 
 .panel {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 6px;
     padding: 1.4rem 1.6rem;
     line-height: 1.65;
 }
@@ -130,8 +258,31 @@ div[data-baseweb="tab-highlight"] { background-color: var(--accent) !important; 
     white-space: pre-wrap;
     font-size: .95rem;
 }
+div[data-testid="stDownloadButton"] button {
+    border-color: var(--ink);
+    border-radius: 6px;
+    color: var(--ink);
+    font-weight: 600;
+}
+div[data-testid="stDownloadButton"] button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 700px) {
+    .block-container { padding: 1rem 1rem 2rem; }
+    .empty { min-height: 340px; padding: 2.2rem 1.5rem; }
+    .empty h1 { max-width: 430px; font-size: 2.65rem; }
+    .empty p { max-width: 390px; font-size: .98rem; }
+    .waveform { right: 1.4rem; top: auto; bottom: 1.1rem; transform: scale(.72); transform-origin: bottom right; }
+    .hero { padding: 1.3rem; }
+    .hero-title { font-size: 1.8rem; }
+    .workspace-tag { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -314,14 +465,41 @@ if run:
 
 # ---------------------------------------------------------------- main view
 result = st.session_state.result
+st.markdown(
+    """
+<div class="masthead">
+    <div class="brand-lockup"><span class="brand-mark">M</span> Meeting Assistant</div>
+    <div class="workspace-tag">Meeting studio &nbsp; / &nbsp; Private workspace</div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
 if not result:
     st.markdown(
         """
 <div class="empty">
-    <h2>Add a recording to get started</h2>
-    <p>Paste a YouTube link or upload a file in the sidebar.<br>
-    You'll get a summary, action items, decisions, open questions, and a chat that answers from the transcript.</p>
+    <div class="eyebrow">A clearer view of the conversation</div>
+    <h1>Make room for the ideas that matter.</h1>
+    <p>Your meeting, brought into focus.</p>
+    <div class="waveform" aria-hidden="true">
+        <span style="--bar-height: 18px; --delay: 0ms"></span>
+        <span style="--bar-height: 34px; --delay: 90ms"></span>
+        <span style="--bar-height: 54px; --delay: 180ms"></span>
+        <span style="--bar-height: 28px; --delay: 270ms"></span>
+        <span style="--bar-height: 70px; --delay: 360ms"></span>
+        <span style="--bar-height: 42px; --delay: 450ms"></span>
+        <span style="--bar-height: 24px; --delay: 540ms"></span>
+        <span style="--bar-height: 62px; --delay: 630ms"></span>
+        <span style="--bar-height: 34px; --delay: 720ms"></span>
+        <span style="--bar-height: 76px; --delay: 810ms"></span>
+        <span style="--bar-height: 46px; --delay: 900ms"></span>
+        <span style="--bar-height: 22px; --delay: 990ms"></span>
+        <span style="--bar-height: 58px; --delay: 1080ms"></span>
+        <span style="--bar-height: 32px; --delay: 1170ms"></span>
+        <span style="--bar-height: 68px; --delay: 1260ms"></span>
+        <span style="--bar-height: 40px; --delay: 1350ms"></span>
+    </div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -332,6 +510,7 @@ words = len(result["transcript"].split())
 st.markdown(
     f"""
 <div class="hero">
+    <div class="eyebrow">Meeting brief</div>
     <p class="hero-title">{html.escape(str(result['title']))}</p>
     <p class="hero-sub">{words:,} words transcribed</p>
 </div>
